@@ -49,8 +49,12 @@ jobs:
     - name: Build Installer
       shell: cmd
       run: |
+        echo === Checking dist directory ===
+        dir dist /s
+        echo === Running ISCC ===
         mkdir output
-        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build\build_installer.iss
+        cd build
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build_installer.iss
 
     - name: Create Release
       shell: pwsh
