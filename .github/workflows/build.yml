@@ -42,13 +42,20 @@ jobs:
       run: |
         cd windows_service && dotnet publish -c Release -r win-x64 --self-contained true -o ..\dist\service
 
-    - name: Create Installer with Inno Setup
-      uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
-      with:
-        path: build\build_installer.iss
-
-    - name: Upload Artifacts
+    - name: Upload UI Client
       uses: actions/upload-artifact@v4
       with:
-        name: WellnessFocus-Setup
-        path: output\WellnessFocus_Setup.exe
+        name: WellnessFocusUI
+        path: dist\WellnessFocusUI.exe
+
+    - name: Upload Windows Service
+      uses: actions/upload-artifact@v4
+      with:
+        name: WellnessService
+        path: dist\service\
+
+    - name: Upload Config
+      uses: actions/upload-artifact@v4
+      with:
+        name: config
+        path: config.json
