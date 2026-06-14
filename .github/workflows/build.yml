@@ -1,0 +1,53 @@
+name: Build Wellness Focus
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build UI Client with PyInstaller
+      run: |
+        pyinstaller --onefile --windowed --name "WellnessFocusUI" ^
+          --distpath dist ^
+          main.py
+
+    - name: Build Windows Service
+      run: |
+        cd windows_service
+        dotnet publish -c Release -r win-x64 --self-contained true -o ..\dist\service
+
+    - name: Create Installer with Inno Setup
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
+      with:
+        path: build\build_installer.iss
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: WellnessFocus-Setup
+        path: output\WellnessFocus_Setup.exe
