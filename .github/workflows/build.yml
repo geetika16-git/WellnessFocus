@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
     - uses: actions/checkout@v4
@@ -31,15 +33,14 @@ jobs:
         pip install pyinstaller
 
     - name: Build UI Client with PyInstaller
+      shell: cmd
       run: |
-        pyinstaller --onefile --windowed --name "WellnessFocusUI" ^
-          --distpath dist ^
-          main.py
+        pyinstaller --onefile --windowed --name "WellnessFocusUI" --distpath dist main.py
 
     - name: Build Windows Service
+      shell: cmd
       run: |
-        cd windows_service
-        dotnet publish -c Release -r win-x64 --self-contained true -o ..\dist\service
+        cd windows_service && dotnet publish -c Release -r win-x64 --self-contained true -o ..\dist\service
 
     - name: Create Installer with Inno Setup
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
