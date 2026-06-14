@@ -42,20 +42,21 @@ jobs:
       run: |
         cd windows_service && dotnet publish -c Release -r win-x64 --self-contained true -o ..\dist\service
 
-    - name: Upload UI Client
-      uses: actions/upload-artifact@v4
-      with:
-        name: WellnessFocusUI
-        path: dist\WellnessFocusUI.exe
+    - name: Build Installer with Inno Setup
+      shell: cmd
+      run: |
+        where ISCC.exe 2>nul
+        if errorlevel 1 (
+          echo Downloading Inno Setup...
+          curl -L -o inno.exe "https://files.jrsoftware.org/is/6/innosetup-6.4.2.exe"
+          start /wait inno.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR="C:\InnoSetup"
+          set "PATH=C:\InnoSetup;%PATH%"
+        )
+        mkdir output
+        ISCC.exe build\build_installer.iss
 
-    - name: Upload Windows Service
+    - name: Upload Installer
       uses: actions/upload-artifact@v4
       with:
-        name: WellnessService
-        path: dist\service\
-
-    - name: Upload Config
-      uses: actions/upload-artifact@v4
-      with:
-        name: config
-        path: config.json
+        name: WellnessFocus_Setup
+        path: output\WellnessFocus_Setup.exe
