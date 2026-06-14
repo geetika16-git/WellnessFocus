@@ -47,14 +47,57 @@ jobs:
       run: choco install innosetup --no-progress -y
 
     - name: Build Installer
-      shell: cmd
+      shell: pwsh
       run: |
-        echo === Checking dist directory ===
-        dir dist /s
-        echo === Running ISCC ===
-        mkdir output
-        cd build
-        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build_installer.iss
+        $root = (Get-Location).Path
+        @"
+        [Setup]
+        AppName=Wellness Focus
+        AppVersion=1.0.0
+        AppPublisher=Wellness Focus
+        DefaultDirName={autopf}\WellnessFocus
+        DefaultGroupName=Wellness Focus
+        UninstallDisplayIcon={app}\WellnessFocusUI.exe
+        Compression=lzma2
+        SolidCompression=yes
+        OutputDir=$root\output
+        OutputBaseFilename=WellnessFocus_Setup
+        PrivilegesRequired=admin
+        DisableProgramGroupPage=yes
+
+        [Languages]
+        Name: "english"; MessagesFile: "compiler:Default.isl"
+
+        [Files]
+        Source: "$root\dist\WellnessFocusUI.exe"; DestDir: "{app}"; Flags: ignoreversion
+        Source: "$root\dist\service\*"; DestDir: "{app}\service"; Flags: ignoreversion recursesubdirs
+
+        [Dirs]
+        Name: "{commonappdata}\WellnessFocus"
+
+        [Icons]
+        Name: "{group}\Wellness Focus"; Filename: "{app}\WellnessFocusUI.exe"
+        Name: "{group}\Uninstall Wellness Focus"; Filename: "{uninstallexe}"
+
+        [Run]
+        Filename: "{app}\service\WellnessService.exe"; Parameters: "--install"; Flags: runhidden
+        Filename: "{app}\WellnessFocusUI.exe"; Flags: nowait runhidden
+
+        [UninstallRun]
+        Filename: "{app}\service\WellnessService.exe"; Parameters: "--uninstall"; Flags: runhidden
+
+        [Code]
+        function InitializeUninstall: Boolean;
+        var
+          ResultCode: Integer;
+        begin
+          Exec(ExpandConstant('{app}\service\WellnessService.exe'), '--uninstall', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+          Result := True;
+        end;
+        "@ | Out-File -FilePath build_installer.iss -Encoding ASCII
+
+        New-Item -ItemType Directory -Force -Path output | Out-Null
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build_installer.iss
 
     - name: Create Release
       shell: pwsh
