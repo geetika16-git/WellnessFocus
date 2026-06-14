@@ -1,0 +1,8 @@
+{
+  "work_duration_minutes": 20,
+  "break_duration_seconds": 30,
+  "parent_password_hash": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+  "break_message": "Time to rest your eyes! Look at something 20 feet away for 30 seconds.",
+  "eye_break_enabled": true,
+  "force_lock": true
+}
