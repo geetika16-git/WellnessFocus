@@ -3,9 +3,10 @@ name: Build Wellness Focus
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -32,7 +33,7 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
 
-    - name: Build UI Client with PyInstaller
+    - name: Build UI Client
       shell: cmd
       run: |
         pyinstaller --onefile --windowed --name "WellnessFocusUI" --distpath dist main.py
@@ -42,21 +43,21 @@ jobs:
       run: |
         cd windows_service && dotnet publish -c Release -r win-x64 --self-contained true -o ..\dist\service
 
-    - name: Build Installer with Inno Setup
+    - name: Install Inno Setup
+      run: choco install innosetup --no-progress -y
+
+    - name: Build Installer
       shell: cmd
       run: |
-        where ISCC.exe 2>nul
-        if errorlevel 1 (
-          echo Downloading Inno Setup...
-          curl -L -o inno.exe "https://files.jrsoftware.org/is/6/innosetup-6.4.2.exe"
-          start /wait inno.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR="C:\InnoSetup"
-          set "PATH=C:\InnoSetup;%PATH%"
-        )
         mkdir output
-        ISCC.exe build\build_installer.iss
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build\build_installer.iss
 
-    - name: Upload Installer
-      uses: actions/upload-artifact@v4
-      with:
-        name: WellnessFocus_Setup
-        path: output\WellnessFocus_Setup.exe
+    - name: Create Release
+      shell: pwsh
+      run: |
+        $tag = "v{0:yyyy.MM.dd.HHmmss}" -f (Get-Date)
+        gh release create $tag "output\WellnessFocus_Setup.exe#WellnessFocus-Setup" `
+          --title "Wellness Focus $tag" `
+          --notes "Auto-built installer. Download and run WellnessFocus_Setup.exe on the target Windows laptop."
+      env:
+        GH_TOKEN: ${{ github.token }}
