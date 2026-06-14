@@ -31,12 +31,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install nuitka
 
-    - name: Build UI Client
+    - name: Build UI Client with Nuitka
       shell: cmd
       run: |
-        pyinstaller --onefile --windowed --name "WellnessFocusUI" --distpath dist main.py
+        python -m nuitka --onefile --windows-disable-console --output-dir=dist --output-file=WellnessFocusUI main.py
 
     - name: Build Windows Service
       shell: cmd
