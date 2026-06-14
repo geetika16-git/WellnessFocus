@@ -36,7 +36,7 @@ jobs:
     - name: Build UI Client with Nuitka
       shell: cmd
       run: |
-        python -m nuitka --onefile --windows-disable-console --output-dir=dist --output-file=WellnessFocusUI main.py
+        python -m nuitka --onefile --windows-console-mode=disable --enable-plugin=pyside6 --assume-yes-for-downloads --output-dir=dist --output-file=WellnessFocusUI main.py
 
     - name: Build Windows Service
       shell: cmd
