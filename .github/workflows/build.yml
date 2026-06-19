@@ -78,10 +78,10 @@ jobs:
         [Icons]
         Name: "{group}\Wellness Focus"; Filename: "{app}\WellnessFocusUI.exe"
         Name: "{group}\Uninstall Wellness Focus"; Filename: "{uninstallexe}"
+        Name: "{commonstartup}\Wellness Focus"; Filename: "{app}\WellnessFocusUI.exe"
 
         [Run]
         Filename: "{app}\service\WellnessService.exe"; Parameters: "--install"; Flags: runhidden
-        Filename: "{app}\WellnessFocusUI.exe"; Flags: nowait runhidden
 
         [UninstallRun]
         Filename: "{app}\service\WellnessService.exe"; Parameters: "--uninstall"; Flags: runhidden

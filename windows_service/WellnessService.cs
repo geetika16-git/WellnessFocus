@@ -13,8 +13,6 @@ public class WellnessService : BackgroundService
     private readonly string _appDataDir;
     private readonly string _configPath;
     private readonly string _dbPath;
-    private readonly string _uiClientPath;
-    private Process? _uiClientProcess;
     private Timer? _watchdogTimer;
     private Timer? _blockingTimer;
     private JsonDocument? _config;
@@ -28,19 +26,12 @@ public class WellnessService : BackgroundService
         );
         _configPath = Path.Combine(_appDataDir, "config.json");
         _dbPath = Path.Combine(_appDataDir, "activity.db");
-        _uiClientPath = Path.Combine(
-            AppContext.BaseDirectory,
-            "..",
-            "WellnessFocusUI.exe"
-        );
         Directory.CreateDirectory(_appDataDir);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Wellness Focus Service starting");
-
-        StartUiClient();
 
         _watchdogTimer = new Timer(WatchdogCheck, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
         _blockingTimer = new Timer(EnforceBlocks, null, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
@@ -57,60 +48,15 @@ public class WellnessService : BackgroundService
         {
             _watchdogTimer?.Dispose();
             _blockingTimer?.Dispose();
-            KillUiClient();
-        }
-    }
-
-    private void StartUiClient()
-    {
-        try
-        {
-            if (File.Exists(_uiClientPath))
-            {
-                var startInfo = new ProcessStartInfo
-                {
-                    FileName = _uiClientPath,
-                    WorkingDirectory = Path.GetDirectoryName(_uiClientPath),
-                    UseShellExecute = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-                _uiClientProcess = Process.Start(startInfo);
-                _logger.LogInformation("UI Client started: {Path}", _uiClientPath);
-            }
-            else
-            {
-                _logger.LogWarning("UI Client not found: {Path}", _uiClientPath);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to start UI Client");
         }
     }
 
     private void WatchdogCheck(object? state)
     {
-        if (_uiClientProcess == null || _uiClientProcess.HasExited)
+        var running = Process.GetProcessesByName("WellnessFocusUI");
+        if (running.Length == 0)
         {
-            _logger.LogWarning("UI Client is not running. Restarting...");
-            StartUiClient();
-        }
-    }
-
-    private void KillUiClient()
-    {
-        try
-        {
-            if (_uiClientProcess != null && !_uiClientProcess.HasExited)
-            {
-                _uiClientProcess.Kill();
-                _uiClientProcess.WaitForExit(5000);
-                _logger.LogInformation("UI Client terminated");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error terminating UI Client");
+            _logger.LogWarning("UI Client is not running (launched via startup folder)");
         }
     }
 
