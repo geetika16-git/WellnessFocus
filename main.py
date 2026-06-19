@@ -33,6 +33,8 @@ class WellnessApp(QWidget):
         self._setup_timers()
         self._start_monitoring()
 
+        QTimer.singleShot(2000, self._first_run_check)
+
     def _setup_tray(self):
         icon = self._create_tray_icon()
         self.tray = QSystemTrayIcon(icon, self)
@@ -199,6 +201,16 @@ class WellnessApp(QWidget):
             msg += f"\nTop apps:\n{app_list}"
 
         self.tray.showMessage("Wellness Focus - Today's Status", msg, QSystemTrayIcon.Information, 5000)
+
+    def _first_run_check(self):
+        email = ConfigManager.get_user_email()
+        if not email:
+            self.tray.showMessage(
+                "Wellness Focus is running",
+                "Click Admin Settings to configure limits and user email.",
+                QSystemTrayIcon.Information,
+                5000
+            )
 
     def open_admin(self):
         dialog = AdminPanel(self)

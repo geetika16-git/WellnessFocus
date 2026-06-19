@@ -30,7 +30,7 @@ public class WellnessService : BackgroundService
         _dbPath = Path.Combine(_appDataDir, "activity.db");
         _uiClientPath = Path.Combine(
             AppContext.BaseDirectory,
-            "ui_client",
+            "..",
             "WellnessFocusUI.exe"
         );
         Directory.CreateDirectory(_appDataDir);
